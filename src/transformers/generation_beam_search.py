@@ -242,7 +242,8 @@ class BeamSearchScorer(BeamScorer):
                         continue
                     beam_hyp.add(
                         input_ids[batch_beam_idx].clone(),
-                        next_score.item(),
+                        # next_score.item(),
+                        next_score,  # ATTN: 移除item，保留梯度
                     )
                 else:
                     # add next predicted token since it is not eos_token
@@ -262,7 +263,8 @@ class BeamSearchScorer(BeamScorer):
 
             # Check if we are done so that we can save a pad step if all(done)
             self._done[batch_idx] = self._done[batch_idx] or beam_hyp.is_done(
-                next_scores[batch_idx].max().item(), cur_len
+                # next_scores[batch_idx].max().item(), cur_len
+                next_scores[batch_idx].max(), cur_len  # ATTN: 移除item，保留梯度
             )
 
         return UserDict(
@@ -293,7 +295,8 @@ class BeamSearchScorer(BeamScorer):
             # beam hypothesis class automatically keeps the best beams
             for beam_id in range(self.num_beams):
                 batch_beam_idx = batch_idx * self.num_beams + beam_id
-                final_score = final_beam_scores[batch_beam_idx].item()
+                # final_score = final_beam_scores[batch_beam_idx].item()
+                final_score = final_beam_scores[batch_beam_idx]  # ATTN: 移除item，保留梯度
                 final_tokens = input_ids[batch_beam_idx]
                 beam_hyp.add(final_tokens, final_score)
 
